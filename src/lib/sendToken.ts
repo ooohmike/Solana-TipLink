@@ -1,69 +1,85 @@
-import { Connection, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount, createAssociatedTokenAccountInstruction, createTransferInstruction, getAssociatedTokenAddress } from "@solana/spl-token";
-import { Wallet } from "@project-serum/anchor";
+import { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
+import { getAccount, createAssociatedTokenAccountInstruction, createTransferInstruction, getAssociatedTokenAddress, getMint } from "@solana/spl-token";
 
 export async function transfer(
   tokenMintAddress: string,
-  wallet: Wallet,
-  to: string,
+  wallet: any,
   connection: Connection,
-  amount: number
+  multiLinks: { address: string; amount: number; }[]
 ) {
-  const mintPublicKey = new PublicKey(tokenMintAddress);
-  const destPublicKey = new PublicKey(to);
-
-  // Get or create the associated token account for the sender
-  const fromTokenAccount = await getOrCreateAssociatedTokenAccount(
-    connection,
-    wallet.payer,
-    mintPublicKey,
-    wallet.publicKey
-  );
-
-  // Get the associated token address for the recipient
-  const associatedDestinationTokenAddr = await getAssociatedTokenAddress(
-    mintPublicKey,
-    destPublicKey
-  );
-
-  // Check if the recipient's associated token account exists
-  const receiverAccount = await connection.getAccountInfo(associatedDestinationTokenAddr);
+  const LAMPORTS_PER_SOL = 1_000_000_000;
+  const TIPLINK_MINIMUM_LAMPORTS = 4083560;
+  const TIPLINK_SOL_ONLY_LINK_MINIMUM_LAMPORTS = 900000;
 
   const instructions: TransactionInstruction[] = [];
 
-  // If the recipient's associated token account does not exist, create it
-  if (receiverAccount === null) {
-    instructions.push(
-      createAssociatedTokenAccountInstruction(
-        wallet.publicKey,
-        associatedDestinationTokenAddr,
-        destPublicKey,
-        mintPublicKey
-      )
+  if(tokenMintAddress == 'So11111111111111111111111111111111111111112') {
+    for (const link of multiLinks) {
+      const to = link.address;
+      const destPublicKey = new PublicKey(to);
+      
+      instructions.push(
+        SystemProgram.transfer({
+          fromPubkey: wallet.publicKey,
+          toPubkey: destPublicKey,
+          lamports: Math.floor(link.amount * LAMPORTS_PER_SOL) + TIPLINK_SOL_ONLY_LINK_MINIMUM_LAMPORTS,
+        })
+      );
+    }
+  } else {
+    const mintPublicKey = new PublicKey(tokenMintAddress);
+    const mintInfo = await getMint(connection, mintPublicKey);
+    const decimals = mintInfo.decimals;
+    const associatedTokenFrom = await getAssociatedTokenAddress(
+      mintPublicKey,
+      wallet.publicKey
     );
+    const fromAccount = await getAccount(connection, associatedTokenFrom);
+  
+    for(const link of multiLinks) {
+      const to = link.address;
+      const destPublicKey = new PublicKey(to);
+      const associatedTokenTo = await getAssociatedTokenAddress(
+        mintPublicKey,
+        destPublicKey
+      );
+      
+      if (!(await connection.getAccountInfo(associatedTokenTo))) {
+        instructions.push(
+          createAssociatedTokenAccountInstruction(
+            wallet.publicKey,
+            associatedTokenTo,
+            destPublicKey,
+            mintPublicKey
+          )
+        );
+      }
+      instructions.push(
+        SystemProgram.transfer({
+          fromPubkey: wallet.publicKey,
+          toPubkey: destPublicKey,
+          lamports: TIPLINK_MINIMUM_LAMPORTS,
+        })
+      );
+      instructions.push(
+        createTransferInstruction(
+          fromAccount.address,
+          associatedTokenTo,
+          wallet.publicKey,
+          Math.floor(link.amount * Math.pow(10, decimals)),
+        )
+      );
+    }
+    console.log(instructions)
   }
+  
+  const transaction = new Transaction()
+    .add(...instructions);
 
-  // Add the transfer instruction
-  instructions.push(
-    createTransferInstruction(
-      fromTokenAccount.address,
-      associatedDestinationTokenAddr,
-      wallet.publicKey,
-      amount
-    )
-  );
-
-  // Create and sign the transaction
-  const transaction = new Transaction().add(...instructions);
-  transaction.feePayer = wallet.publicKey;
-  transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
-
-  // Send the transaction
-  const transactionSignature = await connection.sendTransaction(transaction, [wallet.payer], {
-    skipPreflight: false,
-    preflightCommitment: "singleGossip"
-  });
-
-  // Confirm the transaction
-  await connection.confirmTransaction(transactionSignature, "singleGossip");
+  const {
+    value: { blockhash, lastValidBlockHeight }
+  } = await connection.getLatestBlockhashAndContext();
+  
+  const signature = await wallet.sendTransaction(transaction, connection);
+  await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
 }

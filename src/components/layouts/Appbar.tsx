@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import dynamic from "next/dynamic";
-import WalletMultiButton from "@solana/wallet-adapter-react-ui";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 interface AppBarProps {
@@ -13,12 +12,6 @@ interface AppBarProps {
 export default function Appbar(props: AppBarProps) {
   const { setPublicKey, setIsWalletConnected } = props;
   const { publicKey, connected, disconnect } = useWallet();
-
-  const WalletMultiButtonDynamic = dynamic(
-    async () =>
-      (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
-    { ssr: false }
-  );
 
   useEffect(() => {
     if (connected) {
@@ -52,7 +45,7 @@ export default function Appbar(props: AppBarProps) {
         Solana Multilink
       </div>
       <div className="flex justify-items-end gap-2">
-        <WalletMultiButtonDynamic />
+        <WalletMultiButton />
       </div>
     </div>
   );

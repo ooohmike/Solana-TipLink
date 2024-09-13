@@ -1,13 +1,6 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import axios from 'axios';
 
-const connection = new Connection('https://api.mainnet-beta.solana.com');
-
-interface TokenWithBalance {
-  mint: string;
-  amount: number;
-  decimals: number;
-}
 
 export async function getTokensWithBalance(address: string, token_type:string) {
   const xAPIKey = process.env.NEXT_PUBLIC_SHYFT_API_KEY;

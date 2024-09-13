@@ -57,7 +57,7 @@ export default function SolanaTokenModal(props: SolanaTokenModalProps) {
         </button>
         <div className="m-3 border-2 border-amber-700 h-[85%] p-5 rounded-lg">
           <ul className="flex flex-col gap-2">
-            {props.tokens.map((token) => (
+            {props.tokens && props.tokens.map((token) => (
               <li
                 key={token.address}
                 className="flex gap-2 cursor-pointer border-1 bg-slate-800 rounded-lg p-1"

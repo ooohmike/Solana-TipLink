@@ -20,13 +20,7 @@ function generateRandomValues(amount: number, count: number): number[] {
   // Helper function to generate random value with specified precision
   const generateRandom = (max: number): number =>
     parseFloat((Math.random() * max).toFixed(10));
-
-  // Validate input
-  if (count <= 0) throw new Error("Count must be greater than 0");
-  if (amount <= 0) throw new Error("Amount must be greater than 0");
-  if (amount < count * 1e-10)
-    throw new Error("Amount is too small for the given count");
-
+  
   let parts: number[] = [];
   let total: number = 0;
 
@@ -51,6 +45,19 @@ export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
     countClaim: number,
     payAmount: number
   ): Promise<MultiLinkProps[]> {
+    // Validate input
+    if (countClaim <= 0) {
+      toast.error("Count must be greater than 0");
+      return [];
+    }
+    if (payAmount <= 0) {
+      toast.error("Amount must be greater than 0");
+      return [];
+    };
+    if (payAmount < countClaim * 1e-10) {
+      toast.error("Amount is too small for the given count");
+      return [];
+    }
     // Fetch URLs
     const urlPromises = Array.from({ length: countClaim }, () =>
       fetch("http://localhost:3001/tiplink/create").then((res) => res.json())
@@ -112,8 +119,10 @@ export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
     generateMultiLinks(props.countClaim, props.payAmount).then(
       (res: MultiLinkProps[]) => {
         console.log(res);
-        props.setMultiLink(res);
-        props.setIsLinkGenerated(true);
+        if(res.length > 0) {
+          props.setMultiLink(res);
+          props.setIsLinkGenerated(true);
+        }
       }
     );
   };
