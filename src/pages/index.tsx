@@ -49,7 +49,10 @@ const Home: NextPage = () => {
 
   const sendToken = () => {
     // let address = "";
-    let address = multiLink[0]?.address;
+
+    let address = multiLink[0]?.address.split("#")[1];
+
+    console.log("address", address);
     let targetToken = "";
     fetch(`http://localhost:3001/tiplink/fromLink?link=${address}`).then(
       (res) => {
@@ -66,11 +69,11 @@ const Home: NextPage = () => {
           // Convert to Base58 using the toBase58() method
           targetToken = publicKey.toBase58();
           console.log("targetToken", targetToken, publicKey);
-          const connection = new Connection(
-            "https://mainnet.helius-rpc.com/?api-key=0cadae95-c4fd-4f06-b3e9-6dc5c07ea8d9",
-            "confirmed"
-          );
-          const payer = Keypair.generate();
+          // const connection = new Connection(
+          //   "https://mainnet.helius-rpc.com/?api-key=0cadae95-c4fd-4f06-b3e9-6dc5c07ea8d9",
+          //   "confirmed"
+          // );
+          // const payer = Keypair.generate();
           // const wallet: Wallet = {
           //   publicKey: payer.publicKey,
           //   payer: payer,
@@ -83,25 +86,25 @@ const Home: NextPage = () => {
           //     throw new Error("Function not implemented.");
           //   },
           // };
-          console.log("address", address);
-          if (selectedToken?.address && wallet && connection) {
-            console.log("ff", selectedToken.address, multiLink[0].balance);
-            transfer(
-              selectedToken.address,
-              { publicKey, signTransaction } as any,
-              targetToken,
-              connection,
-              multiLink[0].balance
-            )
-              .then(() => {
-                console.log("Transaction successful!");
-              })
-              .catch((error) => {
-                console.log("Transaction failed:", error);
-              });
-          } else {
-            console.error("Selected token or token address is undefined.");
-          }
+          // console.log("address", address);
+          // if (selectedToken?.address && wallet && connection) {
+          //   console.log("ff", selectedToken.address, multiLink[0].balance);
+          //   transfer(
+          //     selectedToken.address,
+          //     { publicKey, signTransaction } as any,
+          //     targetToken,
+          //     connection,
+          //     multiLink[0].balance
+          //   )
+          //     .then(() => {
+          //       console.log("Transaction successful!");
+          //     })
+          //     .catch((error) => {
+          //       console.log("Transaction failed:", error);
+          //     });
+          // } else {
+          //   console.error("Selected token or token address is undefined.");
+          // }
         });
       }
     );
