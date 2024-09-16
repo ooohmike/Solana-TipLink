@@ -55,7 +55,6 @@ const Home: NextPage = (props: any) => {
     setIsClaimCreating(true);
     let targetToken = "";
     const multiLinks = [];
-    console.log("mt", multiLink);
     for (const link of multiLink) {
       const response = await fetch(
         `http://localhost:3001/tiplink/fromLink?link=${

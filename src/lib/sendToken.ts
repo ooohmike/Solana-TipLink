@@ -70,7 +70,6 @@ export async function transfer(
         )
       );
     }
-    console.log(instructions)
   }
   
   const transaction = new Transaction()

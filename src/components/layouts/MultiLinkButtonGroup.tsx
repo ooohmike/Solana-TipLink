@@ -123,7 +123,6 @@ export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
 
   const handleClick = async () => {
     if (!props.isWalletConnected) {
-      alert("ddd");
       toast.error("Please connect wallet!", {
         position: "top-right",
         autoClose: 5000,

@@ -19,7 +19,6 @@ export default function Appbar(props: AppBarProps) {
 
   useEffect(() => {
     if (connected) {
-      console.log("publicKey", publicKey);
       setPublicKey(publicKey ? publicKey.toBase58() : null);
       setIsWalletConnected(true);
     } else {
