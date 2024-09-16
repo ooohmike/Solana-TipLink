@@ -57,7 +57,7 @@ const Home: NextPage = (props: any) => {
     const multiLinks = [];
     for (const link of multiLink) {
       const response = await fetch(
-        `http://localhost:3001/tiplink/fromLink?link=${
+        `https://tiplink-api.onrender.com/tiplink/fromLink?link=${
           link.address.split("#")[1]
         }`
       );

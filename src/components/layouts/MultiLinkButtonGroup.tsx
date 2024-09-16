@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { SolanaTokenProps, MultiLinkProps } from "@/types";
@@ -45,6 +45,7 @@ function generateRandomValues(amount: number, count: number): number[] {
 }
 
 export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
+  const [isLoading, setIsLoading] = useState(false);
   async function generateMultiLinks(
     countClaim: number,
     payAmount: number,
@@ -93,7 +94,7 @@ export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
     }
     // Fetch URLs
     const urlPromises = Array.from({ length: countClaim }, () =>
-      fetch("http://localhost:3001/tiplink/create").then((res) => res.json())
+      fetch("https://tiplink-api.onrender.com/tiplink/create").then((res) => res.json())
     );
 
     // Await all URL fetches
@@ -161,7 +162,7 @@ export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
         });
         return;
       }
-
+      setIsLoading(true);
       generateMultiLinks(
         props.countClaim,
         props.payAmount,
@@ -174,6 +175,8 @@ export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
           props.setIsLinkGenerated(true);
           props.sendToken(res);
         }
+      }).finally(() => {
+        setIsLoading(false);
       });
     }
   };
@@ -201,6 +204,7 @@ export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
               "linear-gradient(90deg, rgb(253, 247, 94) 0%, rgb(235, 171, 171) 33.33%, rgb(99, 224, 242) 66.66%, rgb(162, 112, 248) 100%)",
           }}
           onClick={handleClick}
+          disabled={isLoading}
         >
           {props.isClaimCreating ? (
             <div className="flex items-center">
