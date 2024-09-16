@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from 'next/router';
 import { PublicKey, Keypair } from "@solana/web3.js";
 
-export default function index() {
+export default function Claim() {
   const router = useRouter();
   const { id } = router.query;
   const [hashValue, setHashValue] = useState('');
