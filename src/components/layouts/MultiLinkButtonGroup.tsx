@@ -94,7 +94,7 @@ export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
     }
     // Fetch URLs
     const urlPromises = Array.from({ length: countClaim }, () =>
-      fetch("https://tiplink-api.onrender.com/tiplink/create").then((res) => res.json())
+      fetch("https://tiplink-api-production.up.railway.app/tiplink/create").then((res) => res.json())
     );
 
     // Await all URL fetches
