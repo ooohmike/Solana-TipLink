@@ -2,33 +2,39 @@
 
 import { NextPage } from "next";
 import React, { useState, useEffect } from "react";
-import Appbar from "@/components/layouts/Appbar";
 import MultiLinkBox from "@/components/layouts/MultiLinkBox";
 import MultiLinkButtonGroup from "@/components/layouts/MultiLinkButtonGroup";
 import SolanaTokenModal from "@/components/SolanaTokenModal";
 import MultiLinkTable from "@/components/MultiLinkTable";
 import { getTokensWithBalance } from "@/lib/fetchSolanaTokensByAddress";
-import { SolanaTokenProps, MultiLinkProps } from "@/types";
+import { SolanaTokenProps, MultiLinkProps, SolanaToken } from "@/types";
 import { PublicKey } from "@solana/web3.js";
 import { transfer } from "@/lib/sendToken";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { toast } from "react-toastify";
+import { fetchSolanaTokenList } from "@/lib/fetchSolanaToken";
+import MoonLoader from "react-spinners/MoonLoader";
 
-const Home: NextPage = () => {
+const Home: NextPage = (props: any) => {
+  const { publickey, isWalletConnected } = props;
   const { publicKey: pubKey, sendTransaction, signTransaction } = useWallet();
   const { connection } = useConnection();
-  const [publickey, setPublicKey] = useState<string | null>(null);
-  const [isWalletConnected, setIsWalletConnected] = useState<Boolean>(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [solanaTokenList, setSolanaTokenList] = useState<SolanaToken[] | null>(
+    []
+  );
+  const [solanaToken, setSolanaToken] = useState<SolanaTokenProps | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [tokens, setTokens] = useState<SolanaTokenProps[]>([]);
+  const [isRandomize, setIsRandomize] = useState<Boolean>(false);
   const [selectedToken, setSelectedToken] = useState<SolanaTokenProps | null>(
     null
   );
-  const [solanaToken, setSolanaToken] = useState<SolanaTokenProps | null>(null);
-  const [tokens, setTokens] = useState<SolanaTokenProps[]>([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [payAmount, setPayAmount] = useState(0);
   const [countClaim, setCountClaim] = useState(2);
   const [isLinkGenerated, setIsLinkGenerated] = useState<Boolean>(false);
   const [multiLink, setMultiLink] = useState<MultiLinkProps[]>([]);
+  const [isClaimCreating, setIsClaimCreating] = useState(false);
   const [isCheckedPay, setIsCheckedPay] = useState<Boolean>(false);
 
   const fetchTokens = async () => {
@@ -44,9 +50,12 @@ const Home: NextPage = () => {
     }
   };
 
-  const sendToken = async () => {
+  const sendToken = async (multiLink: MultiLinkProps[]) => {
+    setIsCheckedPay(false);
+    setIsClaimCreating(true);
     let targetToken = "";
     const multiLinks = [];
+    console.log("mt", multiLink);
     for (const link of multiLink) {
       const response = await fetch(
         `http://localhost:3001/tiplink/fromLink?link=${
@@ -65,7 +74,6 @@ const Home: NextPage = () => {
     }
 
     if (selectedToken?.address && connection) {
-      console.log("ff", selectedToken.address, multiLink[0].balance);
       transfer(
         selectedToken.address,
         { publicKey: pubKey, sendTransaction, signTransaction } as any,
@@ -73,10 +81,15 @@ const Home: NextPage = () => {
         multiLinks
       )
         .then(() => {
-          console.log("Transaction successful!");
+          setIsCheckedPay(true);
+          setIsClaimCreating(false);
+          toast.success("Transaction successful!");
         })
         .catch((error) => {
-          console.log("Transaction failed:", error);
+          setIsCheckedPay(false);
+          setIsClaimCreating(false);
+          toast.error("Transaction Failed!");
+          console.log("Transaction Error:", error);
         });
     } else {
       console.error("Selected token or token address is undefined.");
@@ -89,7 +102,11 @@ const Home: NextPage = () => {
         setTokens(res?.tokens);
         setSolanaToken(res?.solana);
         setSelectedToken(res?.solana);
-        setPayAmount(res?.solana.balance);
+        if (res?.solana) {
+          setPayAmount(res.solana.balance);
+        } else {
+          setPayAmount(0);
+        }
       });
     } else {
       setTokens([]);
@@ -98,12 +115,16 @@ const Home: NextPage = () => {
     }
   }, [isWalletConnected, publickey]);
 
+  useEffect(() => {
+    setIsLoading(true);
+    fetchSolanaTokenList().then((res) => {
+      setSolanaTokenList(res);
+      setIsLoading(false);
+    });
+  }, []);
+
   return (
     <div>
-      <Appbar
-        setPublicKey={setPublicKey}
-        setIsWalletConnected={setIsWalletConnected}
-      />
       <MultiLinkBox
         paymentAmount={payAmount}
         setPaymentAmount={setPayAmount}
@@ -112,6 +133,9 @@ const Home: NextPage = () => {
         isLoading={isLoading}
         publickey={publickey}
         isWalletConnected={isWalletConnected}
+        solanaTokenList={solanaTokenList}
+        setIsRandomize={setIsRandomize}
+        isRandomize={isRandomize}
       />
       <MultiLinkButtonGroup
         countClaim={countClaim}
@@ -122,6 +146,9 @@ const Home: NextPage = () => {
         multiLink={multiLink}
         setMultiLink={setMultiLink}
         setIsLinkGenerated={setIsLinkGenerated}
+        sendToken={sendToken}
+        isClaimCreating={isClaimCreating}
+        isRandomize={isRandomize}
       />
       <SolanaTokenModal
         isOpen={modalIsOpen}
@@ -129,13 +156,16 @@ const Home: NextPage = () => {
         setModalIsOpen={setModalIsOpen}
         setPaymentAmount={setPayAmount}
         setSelectedToken={setSelectedToken}
+        selectedToken={selectedToken}
       />
-      <MultiLinkTable
-        isLinkGenerated={isLinkGenerated}
-        multiLink={multiLink}
-        isCheckedPay={isCheckedPay}
-        sendToken={sendToken}
-      />
+      {isCheckedPay && (
+        <MultiLinkTable
+          isLinkGenerated={isLinkGenerated}
+          multiLink={multiLink}
+          isCheckedPay={isCheckedPay}
+          sendToken={sendToken}
+        />
+      )}
     </div>
   );
 };

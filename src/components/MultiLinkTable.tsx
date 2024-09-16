@@ -5,14 +5,12 @@ interface MultiLinkTableProps {
   isLinkGenerated: Boolean;
   multiLink: MultiLinkProps[];
   isCheckedPay: Boolean;
-  sendToken: () => void;
+  sendToken: (multiLink: MultiLinkProps[]) => void;
 }
 
 export default function MultiLinkTable(props: MultiLinkTableProps) {
   const { isLinkGenerated, multiLink, isCheckedPay, sendToken } = props;
-  const handleTransaction = () => {
-    sendToken();
-  };
+
   return (
     <div className="mt-5 max-w-md mx-auto">
       {props.isLinkGenerated ? (
@@ -25,7 +23,6 @@ export default function MultiLinkTable(props: MultiLinkTableProps) {
               <tr>
                 <th className="border px-4 py-2">Address</th>
                 <th className="border px-4 py-2">Balance</th>
-                <th className="border px-4 py-2">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -34,9 +31,6 @@ export default function MultiLinkTable(props: MultiLinkTableProps) {
                   <tr key={index}>
                     <td className="border px-4 py-2">{link.address}</td>
                     <td className="border px-4 py-2">{link.balance}</td>
-                    <td className="border px-4 py-2">
-                      {link.status ? "Sent" : "Generated"}
-                    </td>
                   </tr>
                 ))
               ) : (
@@ -48,14 +42,6 @@ export default function MultiLinkTable(props: MultiLinkTableProps) {
               )}
             </tbody>
           </table>
-          <div className="mt-3 flex justify-center">
-            <button
-              className="h-7 border-2 w-56 bg-purple-400 rounded-lg"
-              onClick={handleTransaction}
-            >
-              Send
-            </button>
-          </div>
         </>
       ) : (
         <div className="text-center"></div>

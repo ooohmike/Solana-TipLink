@@ -14,3 +14,12 @@ export interface MultiLinkProps {
   balance: number;
   status: Boolean;
 }
+
+export interface SolanaToken {
+  address: string;
+  chainId: number;
+  name: string;
+  symbol: string;
+  logoURI: string;
+  decimals: number;
+}

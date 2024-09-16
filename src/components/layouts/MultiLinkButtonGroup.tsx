@@ -4,6 +4,7 @@ import React from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { SolanaTokenProps, MultiLinkProps } from "@/types";
+import { ClipLoader } from "react-spinners";
 
 interface MultiLinkButtonGroupProps {
   countClaim: number;
@@ -14,13 +15,16 @@ interface MultiLinkButtonGroupProps {
   multiLink: MultiLinkProps[];
   setMultiLink: (e: MultiLinkProps[]) => void;
   setIsLinkGenerated: (e: Boolean) => void;
+  sendToken: (multiLink: MultiLinkProps[]) => void;
+  isClaimCreating: Boolean;
+  isRandomize: Boolean;
 }
 
 function generateRandomValues(amount: number, count: number): number[] {
   // Helper function to generate random value with specified precision
   const generateRandom = (max: number): number =>
     parseFloat((Math.random() * max).toFixed(10));
-  
+
   let parts: number[] = [];
   let total: number = 0;
 
@@ -43,19 +47,48 @@ function generateRandomValues(amount: number, count: number): number[] {
 export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
   async function generateMultiLinks(
     countClaim: number,
-    payAmount: number
+    payAmount: number,
+    isRandomize: Boolean
   ): Promise<MultiLinkProps[]> {
+    console.log("randomize", isRandomize);
     // Validate input
     if (countClaim <= 0) {
-      toast.error("Count must be greater than 0");
+      toast.error("Count must be greater than 0", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
       return [];
     }
     if (payAmount <= 0) {
-      toast.error("Amount must be greater than 0");
+      toast.error("Amount must be greater than 0", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
       return [];
-    };
+    }
     if (payAmount < countClaim * 1e-10) {
-      toast.error("Amount is too small for the given count");
+      toast.error("Amount is too small for the given count", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
       return [];
     }
     // Fetch URLs
@@ -75,7 +108,8 @@ export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
     // Combine URLs and balances into MultiLinkProps
     return urlList.slice(0, countClaim).map((address, index) => ({
       address,
-      balance: balances[index],
+      //balance: balances[index],
+      balance: isRandomize ? balances[index] : payAmount / countClaim,
       status: false,
     }));
   }
@@ -89,47 +123,65 @@ export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
 
   const handleClick = async () => {
     if (!props.isWalletConnected) {
+      alert("ddd");
       toast.error("Please connect wallet!", {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
-        pauseOnHover: true,
         draggable: true,
-        progress: undefined,
         theme: "dark",
       });
       return;
     }
-    if (props.payAmount > (props.selectedToken?.balance ?? 0)) {
-      console.log(props.payAmount + ">" + props.selectedToken?.balance);
-      toast.error("Payment balance exceeds wallet balance!", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "dark",
-      });
-      return;
+    if (props.isRandomize) {
+      if (
+        props.payAmount * props.countClaim >
+        (props.selectedToken?.balance ?? 0)
+      ) {
+        toast.error("Payment balance exceeds wallet balance!", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          draggable: true,
+          theme: "dark",
+        });
+        return;
+      }
     }
+    {
+      if (props.payAmount > (props.selectedToken?.balance ?? 0)) {
+        toast.error("Payment balance exceeds wallet balance!", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          draggable: true,
+          theme: "dark",
+        });
+        return;
+      }
 
-    generateMultiLinks(props.countClaim, props.payAmount).then(
-      (res: MultiLinkProps[]) => {
+      generateMultiLinks(
+        props.countClaim,
+        props.payAmount,
+        props.isRandomize ? true : false
+      ).then((res: MultiLinkProps[]) => {
         console.log(res);
-        if(res.length > 0) {
+        if (res.length > 0) {
+          console.log("multilinks", res);
           props.setMultiLink(res);
           props.setIsLinkGenerated(true);
+          props.sendToken(res);
         }
-      }
-    );
+      });
+    }
   };
 
   return (
     <div className="mt-5 grid grid-cols-2 gap-5 max-w-md mx-auto">
-      <div className="w-full flex justify-center border-4 border-[#cbd5e0] p-2 rounded h-[71px] bg-inherit">
+      <div className="w-full flex justify-center border-4 border-[#cbd5e0] p-2 rounded-3xl h-[71px] bg-inherit">
         <input
           inputMode="decimal"
           placeholder="Number of times link can be claimed"
@@ -144,13 +196,21 @@ export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
       </div>
       <div>
         <button
-          className="w-full h-full border-4 border-[#cbd5e0] p-2 rounded h-[71px] bg-inherit"
+          className="w-full h-full p-2 rounded-3xl h-[71px] bg-inherit flex mx-auto justify-center items-center gap-4"
+          style={{
+            background:
+              "linear-gradient(90deg, rgb(253, 247, 94) 0%, rgb(235, 171, 171) 33.33%, rgb(99, 224, 242) 66.66%, rgb(162, 112, 248) 100%)",
+          }}
           onClick={handleClick}
         >
-          Create Link
+          {props.isClaimCreating ? (
+            <div className="flex items-center">
+              <ClipLoader size={20} color="#fff" />
+            </div>
+          ) : null}
+          <p className="text-base font-bold text-black">Create Link</p>
         </button>
       </div>
-      <ToastContainer />
     </div>
   );
 }

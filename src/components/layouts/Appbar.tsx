@@ -3,8 +3,12 @@
 import React, { useEffect } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
+import Image from "next/image";
+import logo from "/public/logo.svg";
 
 interface AppBarProps {
+  publickey: string | null;
+  isWalletConnected: Boolean;
   setPublicKey: (e: string | null) => void;
   setIsWalletConnected: (e: Boolean) => void;
 }
@@ -41,11 +45,9 @@ export default function Appbar(props: AppBarProps) {
 
   return (
     <div className="flex justify-between w-[80%] mx-auto mt-3">
-      <div className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-teal-500 text-5xl font-black">
-        Solana Multilink
-      </div>
-      <div className="flex justify-items-end gap-2">
-        <WalletMultiButton />
+      <Image src={logo} alt="logo" width={180} height={32} />
+      <div className="flex justify-items-end gap-2 bg-gradient-to-r from-yellow-400 via-pink-300 via-cyan-300 to-purple-500 rounded-[10px]">
+        <WalletMultiButton style={{}} />
       </div>
     </div>
   );

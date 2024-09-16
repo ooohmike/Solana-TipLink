@@ -18,16 +18,147 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
+  /* background: linear-gradient(
       to bottom,
       transparent,
       rgb(var(--background-end-rgb))
     )
-    rgb(var(--background-start-rgb));
+    rgb(var(--background-start-rgb)); */
+  background-color: #131313;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+.toogle-container {
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 700;
+}
+.toggle-switch {
+  position: relative;
+  width: 55px;
+  display: inline-block;
+  text-align: left;
+  top: 6px;
+}
+.checkbox {
+  display: none;
+}
+.label {
+  display: block;
+  overflow: hidden;
+  cursor: pointer;
+  border: 0 solid #bbb;
+  border-radius: 20px;
+}
+.inner {
+  display: block;
+  width: 200%;
+  margin-left: -100%;
+  transition: margin 0.3s ease-in 0s;
+}
+.inner:before,
+.inner:after {
+  float: left;
+  width: 50%;
+  height: 20px;
+  padding: 0;
+  line-height: 20px;
+  color: #fff;
+  font-weight: bold;
+  box-sizing: border-box;
+}
+.inner:before {
+  font-size: 12px;
+  content: "YES";
+  padding-left: 10px;
+  background-color: #060;
+  color: #fff;
+}
+.inner:after {
+  font-size: 12px;
+  content: "NO";
+  padding-right: 10px;
+  background-color: #bbb;
+  color: #fff;
+  text-align: right;
+}
+.switch {
+  display: block;
+  width: 16px;
+  margin: 2px;
+  background: #fff;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 32px;
+  border: 0 solid #bbb;
+  border-radius: 20px;
+  transition: all 0.3s ease-in 0s;
+}
+.checkbox:checked + .label .inner {
+  margin-left: 0;
+}
+.checkbox:checked + .label .switch {
+  right: 0px;
+}
+
+/* styles/globals.css */
+
+/* Define custom styles for removing arrows */
+.noArrows::-webkit-inner-spin-button,
+.noArrows::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.noArrows {
+  -moz-appearance: textfield;
+}
+
+.border-gradient {
+  border-image: linear-gradient(90deg, rgb(253, 247, 94) 0%, rgb(235, 171, 171) 33.33%, rgb(99, 224, 242) 66.66%, rgb(162, 112, 248) 100%) 1;
+}
+
+.tokenModal{
+  color:#fff !important;
+  padding:0 !important;
+  border-radius: 44px;
+  margin-top: 8rem !important;
+  background: #131313;
+}
+
+.tokenModalOverlay{
+  background: #131313;
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  
+  background:  linear-gradient(0deg, rgb(253, 247, 94) 0%, rgb(235, 171, 171) 33.33%, rgb(99, 224, 242) 66.66%, rgb(162, 112, 248) 100%);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  box-shadow: 0px 0px 0px 100000vh black;
+}
+
+.wallet-adapter-dropdown{
+}
+
+.wallet-adapter-button {
+  background-color: #131313 !important;
+  height: 100%;
+  width: 100%;
+  border-radius: 10px;
 }
