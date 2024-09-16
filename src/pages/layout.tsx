@@ -9,6 +9,8 @@ export default function RootLayout({
 }) {
   const [publickey, setPublicKey] = useState<string | null>(null);
   const [isWalletConnected, setIsWalletConnected] = useState<Boolean>(false);
+
+  const isValidChild = React.isValidElement(children);
   return (
     <div>
       <Appbar
@@ -18,10 +20,12 @@ export default function RootLayout({
         setIsWalletConnected={setIsWalletConnected}
       />
       <div>
-        {React.cloneElement(children as React.ReactElement<any>, {
-          publickey: publickey,
-          isWalletConnected: isWalletConnected,
-        })}
+        {isValidChild
+          ? React.cloneElement(children as React.ReactElement<any>, {
+              publickey,
+              isWalletConnected,
+            })
+          : children}
       </div>
     </div>
   );
