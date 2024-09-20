@@ -2,248 +2,179 @@
 
 import React, { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import { parse } from "flatted";
 import "react-toastify/dist/ReactToastify.css";
 import { SolanaTokenProps, MultiLinkProps } from "@/types";
 import { ClipLoader } from "react-spinners";
-import { Campaign } from "@tiplink/api/dist/client";
 
 interface MultiLinkButtonGroupProps {
   countClaim: number;
   setCountClaim: (e: number) => void;
-  isWalletConnected: Boolean;
+  isWalletConnected: boolean;
   selectedToken: SolanaTokenProps | null;
   payAmount: number;
   multiLink: MultiLinkProps[];
   setMultiLink: (e: MultiLinkProps[]) => void;
-  setIsLinkGenerated: (e: Boolean) => void;
+  setIsLinkGenerated: (e: boolean) => void;
   sendToken: (multiLink: MultiLinkProps[]) => void;
   isClaimCreating: Boolean;
   isRandomize: Boolean;
+  setDispenserURL: (e: string) => void;
 }
 
+const showToastError = (message: string) => {
+  toast.error(message, {
+    position: "top-right",
+    autoClose: 5000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    theme: "dark",
+  });
+};
+
 function generateRandomValues(amount: number, count: number): number[] {
-  // Helper function to generate random value with specified precision
   const generateRandom = (max: number): number =>
     parseFloat((Math.random() * max).toFixed(10));
-
   let parts: number[] = [];
-  let total: number = 0;
+  let total = 0;
 
-  // Generate random parts
   for (let i = 0; i < count - 1; i++) {
-    const max: number = amount - total;
-    const part: number = generateRandom(max);
+    const remaining = amount - total;
+    const part = generateRandom(remaining);
     parts.push(part);
     total += part;
   }
 
-  // Add the last part to ensure the sum is exactly the amount
-  const lastPart: number = parseFloat((amount - total).toFixed(10));
-  parts.push(lastPart);
+  parts.push(parseFloat((amount - total).toFixed(10)));
 
-  // Shuffle the array to randomize the order
   return parts;
 }
 
-export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  async function generateMultiLinks(
-    countClaim: number,
-    payAmount: number,
-    isRandomize: Boolean
-  ): Promise<MultiLinkProps[]> {
-    console.log("randomize", isRandomize);
-    // Validate input
-    if (countClaim <= 0) {
-      toast.error("Count must be greater than 0", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "dark",
-      });
+export default function MultiLinkButtonGroup({
+  countClaim,
+  isWalletConnected,
+  selectedToken,
+  payAmount,
+  isRandomize,
+  isClaimCreating,
+  setCountClaim,
+  setMultiLink,
+  setIsLinkGenerated,
+  sendToken,
+  setDispenserURL,
+}: MultiLinkButtonGroupProps) {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const generateMultiLinks = async (): Promise<MultiLinkProps[]> => {
+    if (countClaim <= 0 || payAmount <= 0) {
+      showToastError(
+        countClaim <= 0
+          ? "Count must be greater than 0"
+          : "Amount must be greater than 0"
+      );
       return [];
     }
-    if (payAmount <= 0) {
-      toast.error("Amount must be greater than 0", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "dark",
-      });
-      return [];
-    }
+
     if (payAmount < countClaim * 1e-10) {
-      toast.error("Amount is too small for the given count", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "dark",
-      });
+      showToastError("Amount is too small for the given count");
       return [];
     }
-    // Fetch URLs
-    const tiplink_apikey = process.env.NEXT_PUBLIC_TIPLINK_API_KEY;
 
-    const urlPromises = Array.from({ length: countClaim }, () =>
-      fetch("http://localhost:3001/tiplink/create").then((res) => res.json())
-    );
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_TIPLINK_API_KEY;
+      const urlPromises = Array.from({ length: countClaim }, () =>
+        fetch("http://localhost:3001/tiplink/create").then((res) => res.json())
+      );
 
-    // Await all URL fetches
-    const urlResponses = await Promise.all(urlPromises);
-    const urlList = urlResponses
-      .filter((response) => response.message === "TipLink created")
-      .map((response) => response.data.url);
+      const urlResponses = await Promise.all(urlPromises);
+      const tipLinks = urlResponses
+        .filter((response) => response.message === "TipLink created")
+        .map((response) => response.data);
 
-    const tipLinks = urlResponses
-      .filter((response) => response.message === "TipLink created")
-      .map((response) => response.data);
-
-    // tipLinks.map((tiplink) => {
-    //   tiplink.url = tiplink.url.replace(
-    //     "solana-tip-link.vercel.app/claim",
-    //     "tiplink.io"
-    //   );
-    // });
-    // console.log("tiplinks", JSON.stringify(tipLinks));
-
-    const dispenserURL = await fetch(
-      "http://localhost:3001/tiplink/client/create/dispenserURL",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          apikey: tiplink_apikey,
-          version: 1,
-          tipLinks: tipLinks,
-        }),
-        headers: {
-          "Content-Type": "application/json", // Set appropriate headers
-        },
+      if (!tipLinks.length) {
+        showToastError("Failed to create TipLinks");
+        return [];
       }
-    );
 
-    // Generate random values
-    const balances = generateRandomValues(payAmount, countClaim);
+      const dispenserRes = await fetch(
+        "http://localhost:3001/tiplink/client/create/dispenserURL",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ apikey: apiKey, version: 1, tipLinks }),
+        }
+      ).then((res) => res.json());
 
-    // Combine URLs and balances into MultiLinkProps
-    return urlList.slice(0, countClaim).map((address, index) => ({
-      address,
-      //balance: balances[index],
-      balance: isRandomize ? balances[index] : payAmount / countClaim,
-      status: false,
-    }));
-  }
+      if (dispenserRes.message === "success") {
+        setDispenserURL(dispenserRes.data);
+      }
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(event.target.value); // Convert string to number
-    if (!isNaN(value)) {
-      props.setCountClaim(value); // Pass the number to setCountClaim
+      const balances = isRandomize
+        ? generateRandomValues(payAmount, countClaim)
+        : Array(countClaim).fill(payAmount / countClaim);
+
+      return tipLinks.map((link, i) => ({
+        address: link.url,
+        balance: balances[i],
+        status: false,
+      }));
+    } catch (error) {
+      showToastError("Error creating multi links");
+      console.error("Error:", error);
+      return [];
     }
   };
 
   const handleClick = async () => {
-    if (!props.isWalletConnected) {
-      toast.error("Please connect wallet!", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        draggable: true,
-        theme: "dark",
-      });
+    if (!isWalletConnected) {
+      showToastError("Please connect wallet!");
       return;
     }
-    if (props.isRandomize) {
-      if (
-        props.payAmount * props.countClaim >
-        (props.selectedToken?.balance ?? 0)
-      ) {
-        toast.error("Payment balance exceeds wallet balance!", {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          draggable: true,
-          theme: "dark",
-        });
-        return;
-      }
+
+    const selectedBalance = selectedToken?.balance ?? 0;
+    const requiredBalance = isRandomize ? payAmount * countClaim : payAmount;
+
+    if (requiredBalance > selectedBalance) {
+      showToastError("Payment balance exceeds wallet balance!");
+      return;
     }
-    {
-      if (props.payAmount > (props.selectedToken?.balance ?? 0)) {
-        toast.error("Payment balance exceeds wallet balance!", {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          draggable: true,
-          theme: "dark",
-        });
-        return;
+
+    setIsLoading(true);
+
+    try {
+      const result = await generateMultiLinks();
+      if (result.length > 0) {
+        setMultiLink(result);
+        setIsLinkGenerated(true);
+        sendToken(result);
       }
-      setIsLoading(true);
-      generateMultiLinks(
-        props.countClaim,
-        props.payAmount,
-        props.isRandomize ? true : false
-      )
-        .then((res: MultiLinkProps[]) => {
-          console.log(res);
-          if (res.length > 0) {
-            console.log("multilinks", res);
-            props.setMultiLink(res);
-            props.setIsLinkGenerated(true);
-            props.sendToken(res);
-          }
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="mt-5 grid grid-cols-2 gap-5 max-w-md mx-auto">
-      <div className="w-full flex justify-center border-4 border-[#cbd5e0] p-2 rounded-3xl h-[71px] bg-inherit">
+      <div className="w-full flex justify-center border-4 border-[#cbd5e0] p-2 rounded-3xl bg-inherit h-[71px]">
         <input
           inputMode="decimal"
-          placeholder="Number of times link can be claimed"
+          placeholder="Number of claims"
           min="0"
           className="bg-inherit focus:border-0 focus:outline-none min-w-4 max-w-10"
-          pattern="^\d*([.,]\d*)?$"
           type="tel"
-          value={props.countClaim}
-          onChange={handleChange}
+          value={countClaim}
+          onChange={(e) => setCountClaim(parseFloat(e.target.value))}
         />
         <p className="my-auto">Claims</p>
       </div>
       <div>
         <button
-          className="w-full h-full p-2 rounded-3xl h-[71px] bg-inherit flex mx-auto justify-center items-center gap-4"
-          style={{
-            background:
-              "linear-gradient(90deg, rgb(253, 247, 94) 0%, rgb(235, 171, 171) 33.33%, rgb(99, 224, 242) 66.66%, rgb(162, 112, 248) 100%)",
-          }}
+          className="w-full h-full p-2 rounded-3xl bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-400 flex items-center justify-center gap-4 h-[71px]"
           onClick={handleClick}
           disabled={isLoading}
         >
-          {props.isClaimCreating ? (
-            <div className="flex items-center">
-              <ClipLoader size={20} color="#fff" />
-            </div>
-          ) : null}
+          {isClaimCreating && <ClipLoader size={20} color="#fff" />}
           <p className="text-base font-bold text-black">Create Link</p>
         </button>
       </div>

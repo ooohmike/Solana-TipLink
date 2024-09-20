@@ -29,13 +29,14 @@ const Home: NextPage = (props: any) => {
   const [selectedToken, setSelectedToken] = useState<SolanaTokenProps | null>(
     null
   );
-  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [modalIsOpen, setModalIsOpen] = useState<boolean>(false);
   const [payAmount, setPayAmount] = useState(0);
   const [countClaim, setCountClaim] = useState(2);
   const [isLinkGenerated, setIsLinkGenerated] = useState<Boolean>(false);
   const [multiLink, setMultiLink] = useState<MultiLinkProps[]>([]);
   const [isClaimCreating, setIsClaimCreating] = useState(false);
   const [isCheckedPay, setIsCheckedPay] = useState<Boolean>(false);
+  const [dispenserURL, setDispenserURL] = useState<String>("");
 
   const fetchTokens = async () => {
     if (publickey) {
@@ -148,6 +149,7 @@ const Home: NextPage = (props: any) => {
         sendToken={sendToken}
         isClaimCreating={isClaimCreating}
         isRandomize={isRandomize}
+        setDispenserURL={setDispenserURL}
       />
       <SolanaTokenModal
         isOpen={modalIsOpen}
@@ -163,6 +165,7 @@ const Home: NextPage = (props: any) => {
           multiLink={multiLink}
           isCheckedPay={isCheckedPay}
           sendToken={sendToken}
+          dispenserURL={dispenserURL}
         />
       )}
     </div>

@@ -5,15 +5,17 @@ interface MultiLinkTableProps {
   isLinkGenerated: Boolean;
   multiLink: MultiLinkProps[];
   isCheckedPay: Boolean;
+  dispenserURL: String;
   sendToken: (multiLink: MultiLinkProps[]) => void;
 }
 
 export default function MultiLinkTable(props: MultiLinkTableProps) {
-  const { isLinkGenerated, multiLink, isCheckedPay, sendToken } = props;
+  const { isLinkGenerated, multiLink, isCheckedPay, sendToken, dispenserURL } =
+    props;
 
   return (
     <div className="mt-5 max-w-md mx-auto">
-      {props.isLinkGenerated ? (
+      {isLinkGenerated ? (
         <>
           <table className="min-w-full relative">
             <caption className="caption-top text-lg font-semibold mb-2">
@@ -40,6 +42,13 @@ export default function MultiLinkTable(props: MultiLinkTableProps) {
                   </td>
                 </tr>
               )}
+              {dispenserURL ? (
+                <tr>
+                  <td colSpan={2} className="border px-4 py-2">
+                    {dispenserURL}
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </>
