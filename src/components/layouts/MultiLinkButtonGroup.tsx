@@ -150,7 +150,6 @@ export default function MultiLinkButtonGroup({
         const result = await generateMultiLinks();
         if (result.length > 0) {
           setMultiLink(result);
-          setIsLinkGenerated(true);
           await sendToken(result);
         }
       } finally {

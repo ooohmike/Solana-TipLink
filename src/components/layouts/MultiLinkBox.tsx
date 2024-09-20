@@ -120,7 +120,7 @@ export default function MultiLinkBox({
               placeholder="Number of times link can be claimed"
               min="0"
               type="number"
-              className="text-6xl font-bold text-center bg-inherit focus:border-0 focus:outline-none w-full"
+              className="text-6xl font-bold text-center bg-inherit focus:border-0 focus:outline-none w-full noArrows"
               value={inputValue}
               onChange={handleInputChange}
             />

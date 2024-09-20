@@ -6,6 +6,7 @@ import MultiLinkBox from "@/components/layouts/MultiLinkBox";
 import MultiLinkButtonGroup from "@/components/layouts/MultiLinkButtonGroup";
 import SolanaTokenModal from "@/components/SolanaTokenModal";
 import MultiLinkTable from "@/components/MultiLinkTable";
+import DispenserURL from "@/components/DispenserURL";
 import { getTokensWithBalance } from "@/lib/fetchSolanaTokensByAddress";
 import { SolanaTokenProps, MultiLinkProps, SolanaToken } from "@/types";
 import { PublicKey } from "@solana/web3.js";
@@ -36,7 +37,7 @@ const Home: NextPage = (props: any) => {
   const [multiLink, setMultiLink] = useState<MultiLinkProps[]>([]);
   const [isClaimCreating, setIsClaimCreating] = useState<Boolean>(false);
   const [isCheckedPay, setIsCheckedPay] = useState<Boolean>(false);
-  const [dispenserURL, setDispenserURL] = useState<String>("");
+  const [dispenserURL, setDispenserURL] = useState<string>("");
 
   const fetchTokens = async () => {
     if (publickey) {
@@ -82,6 +83,7 @@ const Home: NextPage = (props: any) => {
         .then(() => {
           setIsCheckedPay(true);
           setIsClaimCreating(false);
+          setIsLinkGenerated(true);
           toast.success("Transaction successful!");
         })
         .catch((error) => {
@@ -159,13 +161,21 @@ const Home: NextPage = (props: any) => {
         setSelectedToken={setSelectedToken}
         selectedToken={selectedToken}
       />
-      {isCheckedPay && (
+      {/* {isCheckedPay && (
         <MultiLinkTable
           isLinkGenerated={isLinkGenerated}
           multiLink={multiLink}
           isCheckedPay={isCheckedPay}
           sendToken={sendToken}
           dispenserURL={dispenserURL}
+        />
+      )} */}
+
+      {isCheckedPay && (
+        <DispenserURL
+          isLinkGenerated={isLinkGenerated}
+          dispenserURL={dispenserURL}
+          isLoading={isLoading}
         />
       )}
     </div>
