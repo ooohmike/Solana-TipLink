@@ -2,9 +2,11 @@
 
 import React, { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
+import { parse } from "flatted";
 import "react-toastify/dist/ReactToastify.css";
 import { SolanaTokenProps, MultiLinkProps } from "@/types";
 import { ClipLoader } from "react-spinners";
+import { Campaign } from "@tiplink/api/dist/client";
 
 interface MultiLinkButtonGroupProps {
   countClaim: number;
@@ -93,8 +95,10 @@ export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
       return [];
     }
     // Fetch URLs
+    const tiplink_apikey = process.env.NEXT_PUBLIC_TIPLINK_API_KEY;
+
     const urlPromises = Array.from({ length: countClaim }, () =>
-      fetch("https://tiplink-api-production.up.railway.app/tiplink/create").then((res) => res.json())
+      fetch("http://localhost:3001/tiplink/create").then((res) => res.json())
     );
 
     // Await all URL fetches
@@ -102,6 +106,33 @@ export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
     const urlList = urlResponses
       .filter((response) => response.message === "TipLink created")
       .map((response) => response.data.url);
+
+    const tipLinks = urlResponses
+      .filter((response) => response.message === "TipLink created")
+      .map((response) => response.data);
+
+    // tipLinks.map((tiplink) => {
+    //   tiplink.url = tiplink.url.replace(
+    //     "solana-tip-link.vercel.app/claim",
+    //     "tiplink.io"
+    //   );
+    // });
+    // console.log("tiplinks", JSON.stringify(tipLinks));
+
+    const dispenserURL = await fetch(
+      "http://localhost:3001/tiplink/client/create/dispenserURL",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          apikey: tiplink_apikey,
+          version: 1,
+          tipLinks: tipLinks,
+        }),
+        headers: {
+          "Content-Type": "application/json", // Set appropriate headers
+        },
+      }
+    );
 
     // Generate random values
     const balances = generateRandomValues(payAmount, countClaim);
@@ -167,17 +198,19 @@ export default function MultiLinkButtonGroup(props: MultiLinkButtonGroupProps) {
         props.countClaim,
         props.payAmount,
         props.isRandomize ? true : false
-      ).then((res: MultiLinkProps[]) => {
-        console.log(res);
-        if (res.length > 0) {
-          console.log("multilinks", res);
-          props.setMultiLink(res);
-          props.setIsLinkGenerated(true);
-          props.sendToken(res);
-        }
-      }).finally(() => {
-        setIsLoading(false);
-      });
+      )
+        .then((res: MultiLinkProps[]) => {
+          console.log(res);
+          if (res.length > 0) {
+            console.log("multilinks", res);
+            props.setMultiLink(res);
+            props.setIsLinkGenerated(true);
+            props.sendToken(res);
+          }
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     }
   };
 
