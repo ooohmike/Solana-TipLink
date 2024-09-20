@@ -14,7 +14,7 @@ export default function MultiLinkTable(props: MultiLinkTableProps) {
     props;
 
   return (
-    <div className="mt-5 max-w-md mx-auto">
+    <div className="mt-5 max-w-lg mx-auto">
       {isLinkGenerated ? (
         <>
           <table className="min-w-full relative">

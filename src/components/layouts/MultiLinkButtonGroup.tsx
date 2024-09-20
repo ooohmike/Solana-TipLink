@@ -19,6 +19,7 @@ interface MultiLinkButtonGroupProps {
   isClaimCreating: Boolean;
   isRandomize: Boolean;
   setDispenserURL: (e: string) => void;
+  setIsClaimCreating: (e: Boolean) => void;
 }
 
 const showToastError = (message: string) => {
@@ -63,6 +64,7 @@ export default function MultiLinkButtonGroup({
   setIsLinkGenerated,
   sendToken,
   setDispenserURL,
+  setIsClaimCreating,
 }: MultiLinkButtonGroupProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -140,18 +142,21 @@ export default function MultiLinkButtonGroup({
       return;
     }
 
+    setIsClaimCreating(true);
     setIsLoading(true);
 
-    try {
-      const result = await generateMultiLinks();
-      if (result.length > 0) {
-        setMultiLink(result);
-        setIsLinkGenerated(true);
-        sendToken(result);
+    setTimeout(async () => {
+      try {
+        const result = await generateMultiLinks();
+        if (result.length > 0) {
+          setMultiLink(result);
+          setIsLinkGenerated(true);
+          await sendToken(result);
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
+    }, 0);
   };
 
   return (

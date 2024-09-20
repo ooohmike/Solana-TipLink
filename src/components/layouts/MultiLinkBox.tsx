@@ -115,7 +115,7 @@ export default function MultiLinkBox({
           </div>
 
           {/* Input & Value Display */}
-          <div className="flex items-center justify-center flex-col mt-6 mb-6">
+          <div className="flex items-center justify-center flex-col mt-6 mb-10">
             <input
               placeholder="Number of times link can be claimed"
               min="0"

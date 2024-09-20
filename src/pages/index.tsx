@@ -34,7 +34,7 @@ const Home: NextPage = (props: any) => {
   const [countClaim, setCountClaim] = useState(2);
   const [isLinkGenerated, setIsLinkGenerated] = useState<Boolean>(false);
   const [multiLink, setMultiLink] = useState<MultiLinkProps[]>([]);
-  const [isClaimCreating, setIsClaimCreating] = useState(false);
+  const [isClaimCreating, setIsClaimCreating] = useState<Boolean>(false);
   const [isCheckedPay, setIsCheckedPay] = useState<Boolean>(false);
   const [dispenserURL, setDispenserURL] = useState<String>("");
 
@@ -53,7 +53,6 @@ const Home: NextPage = (props: any) => {
 
   const sendToken = async (multiLink: MultiLinkProps[]) => {
     setIsCheckedPay(false);
-    setIsClaimCreating(true);
     let targetToken = "";
     const multiLinks = [];
     for (const link of multiLink) {
@@ -148,6 +147,7 @@ const Home: NextPage = (props: any) => {
         setIsLinkGenerated={setIsLinkGenerated}
         sendToken={sendToken}
         isClaimCreating={isClaimCreating}
+        setIsClaimCreating={setIsClaimCreating}
         isRandomize={isRandomize}
         setDispenserURL={setDispenserURL}
       />
