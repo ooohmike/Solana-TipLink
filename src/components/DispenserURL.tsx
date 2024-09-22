@@ -53,14 +53,6 @@ export default function DispenserURL(props: DisPenserURLProps) {
     <div className="mt-5">
       {isLinkGenerated && dispenserURL ? (
         <div className="w-full max-w-lg m-auto">
-          <div className="mb-2 flex justify-between items-center">
-            <label
-              htmlFor="website-url"
-              className="text-sm font-medium text-gray-900 dark:text-white"
-            >
-              Verify Dispenser URL :
-            </label>
-          </div>
 
           <div className="flex items-center">
             <span

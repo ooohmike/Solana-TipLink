@@ -86,7 +86,7 @@ export default function MultiLinkButtonGroup({
     try {
       const apiKey = process.env.NEXT_PUBLIC_TIPLINK_API_KEY;
       const urlPromises = Array.from({ length: countClaim }, () =>
-        fetch("http://localhost:3001/tiplink/create").then((res) => res.json())
+        fetch("https://tiplink-api-production.up.railway.app/tiplink/create").then((res) => res.json())
       );
 
       const urlResponses = await Promise.all(urlPromises);
@@ -100,7 +100,7 @@ export default function MultiLinkButtonGroup({
       }
 
       const dispenserRes = await fetch(
-        "http://localhost:3001/tiplink/client/create/dispenserURL",
+        "https://tiplink-api-production.up.railway.app/tiplink/client/create/dispenserURL",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
