@@ -84,7 +84,6 @@ export default function MultiLinkButtonGroup({
     }
 
     try {
-      const apiKey = process.env.NEXT_PUBLIC_TIPLINK_API_KEY;
       const urlPromises = Array.from({ length: countClaim }, () =>
         fetch("https://tiplink-api-production.up.railway.app/tiplink/create").then((res) => res.json())
       );
@@ -97,19 +96,6 @@ export default function MultiLinkButtonGroup({
       if (!tipLinks.length) {
         showToastError("Failed to create TipLinks");
         return [];
-      }
-
-      const dispenserRes = await fetch(
-        "https://tiplink-api-production.up.railway.app/tiplink/client/create/dispenserURL",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ apikey: apiKey, version: 1, tipLinks }),
-        }
-      ).then((res) => res.json());
-
-      if (dispenserRes.message === "success") {
-        setDispenserURL(dispenserRes.data);
       }
 
       const balances = isRandomize

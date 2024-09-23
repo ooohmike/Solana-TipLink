@@ -56,6 +56,7 @@ const Home: NextPage = (props: any) => {
     setIsCheckedPay(false);
     let targetToken = "";
     const multiLinks = [];
+    const linksRaw: any[] = [];
     for (const link of multiLink) {
       const response = await fetch(
         `https://tiplink-api-production.up.railway.app/tiplink/fromLink?link=${
@@ -67,6 +68,7 @@ const Home: NextPage = (props: any) => {
       const publicKeyArray = Uint8Array.from(Object.values(publicKeyObj));
       const publicKey = new PublicKey(publicKeyArray);
       targetToken = publicKey.toBase58();
+      linksRaw.push(Object.assign({}, res.data));
       multiLinks.push({
         address: targetToken,
         amount: link.balance,
@@ -84,6 +86,22 @@ const Home: NextPage = (props: any) => {
           setIsCheckedPay(true);
           setIsClaimCreating(false);
           setIsLinkGenerated(true);
+          (async()=> {
+            const apiKey = process.env.NEXT_PUBLIC_TIPLINK_API_KEY;
+            const dispenserRes = await fetch(
+              "https://tiplink-api-production.up.railway.app/tiplink/client/create/dispenserURL",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ apikey: apiKey, version: 1, tipLinks: linksRaw }),
+              }
+            ).then((res) => res.json());
+      
+            if (dispenserRes.message === "success") {
+              setDispenserURL(dispenserRes.data);
+            }
+          })();
+          
           toast.success("Transaction successful!");
         })
         .catch((error) => {
