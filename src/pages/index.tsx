@@ -102,7 +102,7 @@ const Home: NextPage = (props: any) => {
             }
           })();
           
-          toast.success("Transaction successful!");
+          toast.success("Transaction successful! Generating Link...");
         })
         .catch((error) => {
           setIsCheckedPay(false);
