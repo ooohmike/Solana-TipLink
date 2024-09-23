@@ -85,7 +85,7 @@ export default function MultiLinkButtonGroup({
 
     try {
       const urlPromises = Array.from({ length: countClaim }, () =>
-        fetch("https://tiplink-api-production.up.railway.app/tiplink/create").then((res) => res.json())
+        fetch("https://frens-api-production.up.railway.app/frenslink/create").then((res) => res.json())
       );
 
       const urlResponses = await Promise.all(urlPromises);

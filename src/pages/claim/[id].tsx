@@ -3,55 +3,101 @@ import { useRouter } from 'next/router';
 import { PublicKey, Keypair } from "@solana/web3.js";
 
 export default function Claim() {
-  const router = useRouter();
-  const { id } = router.query;
-  const [hashValue, setHashValue] = useState('');
+  const [tipLink, setTipLink] = useState(null);
+  const [isClaimed, setIsClaimed] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [pubKey, setPubKey] = useState('');
   const [secKey, setSecKey] = useState('');
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash;
-      if (hash) {
-        (async() => {
-            setHashValue(hash.substring(1)); // Removes the '#' from the hash
-            const response = await fetch(
-                `https://tiplink-api-production.up.railway.app/tiplink/fromLink?link=${
-                    hash
-                }`
-            );
-            const res = await response.json();
-            const publicKeyObj = res.data.keypair._keypair.publicKey;
-            const privateKeyObj = res.data.keypair._keypair.secretKey;
-            
-            const publicKeyArray = Uint8Array.from(Object.values(publicKeyObj));
-            const privateKeyArray = Uint8Array.from(Object.values(privateKeyObj));
-            const publicKey = new PublicKey(publicKeyArray);
-            const privateKey = Buffer.from(privateKeyArray).toString('hex')
-            console.log(privateKey)
-            setPubKey(publicKey.toString());
-            setSecKey(privateKey);
-        })();
-      }
-    }
-  }, []);
+  const fetchTipLink = async () => {
+    setLoading(true);
+    setError('');
 
-//   const claim = async () => {
-//     if(hashValue) {
+    try {
+      const currentLink = window.location.href;
+      const response = await fetch(`https://frens-api-production.up.railway.app/freslink/fromURL?link=${encodeURIComponent(currentLink)}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setTipLink(data.tipLink);
+        const url = data.tipLink.url;
+        const hash = url.split('#')[1];
+        const response = await fetch(
+            `https://frens-api-production.up.railway.app/frenslink/fromLink?link=${
+                hash
+            }`
+        );
+        const res = await response.json();
+        const publicKeyObj = res.data.keypair._keypair.publicKey;
+        const privateKeyObj = res.data.keypair._keypair.secretKey;
         
-//     }
-    
-//   }
+        const publicKeyArray = Uint8Array.from(Object.values(publicKeyObj));
+        const privateKeyArray = Uint8Array.from(Object.values(privateKeyObj));
+        const publicKey = new PublicKey(publicKeyArray);
+        const privateKey = Buffer.from(privateKeyArray).toString('hex')
+        setPubKey(publicKey.toString());
+        setSecKey(privateKey);
+      } else {
+        setError(data.message || 'Error fetching tip link');
+      }
+    } catch (err) {
+      setError('Error fetching tip link');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Claim the TipLink by setting isClaimed to true
+  const claimTipLink = async () => {
+    if (!tipLink) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/tiplink/claim', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ tipLink }), // Pass the tipLink to the claim API
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setIsClaimed(true);
+      } else {
+        setError(data.message || 'Error claiming tip link');
+      }
+    } catch (err) {
+      setError('Error claiming tip link');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTipLink();
+  }, [])
 
   return (
     <div className="flex items-center justify-center">
       <div className="mt-10 p-8 text-center">
-        <h1 className="text-2xl font-bold mb-4">Congratulations!</h1>
-        <p className="text-gray-300 mb-6">You received link.</p>
-        
-        <br></br>
-        <p>Public Address: {pubKey}</p>
-        <p>Secret Key: {secKey} </p>
+        {loading ? <>
+          <span>Loading...</span>
+        </>:<>
+          {error == '' ? <>
+            <h1 className="text-2xl font-bold mb-4">Congratulations!</h1>
+            <p className="text-gray-300 mb-6">You received link.</p>
+            <br></br>
+            <p>Public Key: {pubKey}</p>
+            <p>Private Key: {secKey}</p>
+          </>:<>
+            <p>{error}</p>
+          </>}
+        </>}
         {/* <button
           className="w-full h-full p-2 rounded-3xl h-[71px] bg-inherit flex mx-auto justify-center items-center gap-4"
           style={{

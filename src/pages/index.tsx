@@ -59,7 +59,7 @@ const Home: NextPage = (props: any) => {
     const linksRaw: any[] = [];
     for (const link of multiLink) {
       const response = await fetch(
-        `https://tiplink-api-production.up.railway.app/tiplink/fromLink?link=${
+        `https://frens-api-production.up.railway.app/frenslink/fromLink?link=${
           link.address.split("#")[1]
         }`
       );
@@ -89,7 +89,7 @@ const Home: NextPage = (props: any) => {
           (async()=> {
             const apiKey = process.env.NEXT_PUBLIC_TIPLINK_API_KEY;
             const dispenserRes = await fetch(
-              "https://tiplink-api-production.up.railway.app/tiplink/client/create/dispenserURL",
+              "https://frens-api-production.up.railway.app/frenslink/client/create/dispenserURL",
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
