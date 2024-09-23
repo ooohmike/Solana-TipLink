@@ -90,11 +90,11 @@ export default function MultiLinkButtonGroup({
 
       const urlResponses = await Promise.all(urlPromises);
       const tipLinks = urlResponses
-        .filter((response) => response.message === "TipLink created")
+        .filter((response) => response.message === "FresLink created")
         .map((response) => response.data);
 
       if (!tipLinks.length) {
-        showToastError("Failed to create TipLinks");
+        showToastError("Failed to create Frens Links");
         return [];
       }
 
