@@ -68,7 +68,7 @@ const Home: NextPage = (props: any) => {
       const publicKeyArray = Uint8Array.from(Object.values(publicKeyObj));
       const publicKey = new PublicKey(publicKeyArray);
       targetToken = publicKey.toBase58();
-      linksRaw.push(Object.assign({}, res.data));
+      linksRaw.push(Object.assign({}, {...res.data, amount: link.balance }));
       multiLinks.push({
         address: targetToken,
         amount: link.balance,
@@ -93,7 +93,7 @@ const Home: NextPage = (props: any) => {
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ apikey: apiKey, version: 1, tipLinks: linksRaw }),
+                body: JSON.stringify({ apikey: apiKey, version: 1, tipLinks: linksRaw, token: selectedToken.address }),
               }
             ).then((res) => res.json());
       

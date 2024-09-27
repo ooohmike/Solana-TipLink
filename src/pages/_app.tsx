@@ -10,7 +10,6 @@ import {
   CloverWalletAdapter,
   PhantomWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
-import { clusterApiUrl } from "@solana/web3.js";
 import { ToastContainer } from "react-toastify";
 import { BackpackWalletAdapter } from "@solana/wallet-adapter-backpack";
 import type { AppProps } from "next/app";
