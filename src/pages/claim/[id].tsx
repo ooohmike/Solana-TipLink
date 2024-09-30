@@ -160,6 +160,7 @@ export default function Claim() {
 
       
     } catch (err) {
+      console.log(err)
       setError('Error claiming tokens: ' + (err as any).message);
     } finally {
       setLoading(false);
