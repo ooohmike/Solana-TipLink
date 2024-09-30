@@ -93,7 +93,7 @@ const Home: NextPage = (props: any) => {
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ apikey: apiKey, version: 1, tipLinks: linksRaw, token: selectedToken.address }),
+                body: JSON.stringify({ apikey: apiKey, version: 1, tipLinks: linksRaw, token: selectedToken.address, symbol: selectedToken.info.symbol }),
               }
             ).then((res) => res.json());
       

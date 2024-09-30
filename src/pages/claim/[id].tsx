@@ -50,18 +50,7 @@ export default function Claim() {
         // Token and amount received
         setAmount(data.tipLink.amount);
         setTokenAddress(data.token); // Set the SPL token address
-        const tokenAddr = data.token;
-        const response = await fetch('https://cdn.jsdelivr.net/gh/solana-labs/token-list@main/src/tokens/solana.tokenlist.json');
-        const { tokens } = await response.json();
-        
-        // Find the token metadata by the token address
-        const tokenMetadata = tokens.find((token: any) => token.address === tokenAddr);
-        
-        if (tokenMetadata) {
-          setTokenName(tokenMetadata.symbol);
-        } else {
-          setTokenName('Unknown Token'); // Fallback if token is not found in the list
-        }
+        setTokenName(data.symbol);
       } else {
         setError(data.message || 'Error fetching tip link');
       }
@@ -166,7 +155,7 @@ export default function Claim() {
         toast.success('Tokens claimed successfully!');
       } else {
         toast.error('Claim error');
-        setError(data.message || 'Error claiming tip link');
+        setError(data.message || 'Error claiming token');
       }
 
       
