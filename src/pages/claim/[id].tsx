@@ -181,7 +181,7 @@ export default function Claim() {
             {error === '' ? (
               <>
                 <h1 className="text-2xl font-bold mb-4">Congratulations!</h1>
-                <p className="text-gray-300 mb-6">You received {amount} {tokenName}.</p>
+                <p className="text-gray-300 mb-6">You received {amount} {tokenName}</p>
                 <br />
                 {isClaimed ? (
                   <p className="text-green-500">Tokens have been successfully claimed!</p>
